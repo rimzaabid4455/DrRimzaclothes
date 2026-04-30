@@ -2,8 +2,29 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../lib/api.js';
 import ProductCard from '../components/ProductCard.jsx';
+import { CATEGORY_IMAGES, HERO_IMAGES, SHOWCASE_PRODUCTS } from '../lib/showcase.js';
+import { formatAED } from '../lib/format.js';
+import { Link } from 'react-router-dom';
 
 const CATEGORIES = ['Abayas', 'Kaftans', 'Dresses', 'Evening Wear', 'Accessories'];
+
+const ShowcaseTile = ({ p }) => (
+  <Link to="/shop" className="group block">
+    <div className="relative aspect-[3/4] overflow-hidden bg-cream-100">
+      <img
+        src={p.image}
+        alt={p.name}
+        loading="lazy"
+        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
+    </div>
+    <div className="space-y-1 p-4 text-center">
+      <p className="kicker">{p.category}</p>
+      <h3 className="font-display text-xl">{p.name}</h3>
+      <p className="text-sm text-ink-700">{formatAED(p.price)}</p>
+    </div>
+  </Link>
+);
 const SORTS = [
   { value: '', label: 'Newest' },
   { value: 'price_asc', label: 'Price: Low to High' },
@@ -55,16 +76,29 @@ export default function Shop() {
     setSearchParams(next, { replace: true });
   };
 
-  return (
-    <div className="section py-12">
-      <div className="text-center">
-        <p className="text-xs uppercase tracking-[0.4em] text-gold-500">Boutique</p>
-        <h1 className="mt-3 font-display text-5xl">
-          {category || 'The Collection'}
-        </h1>
-      </div>
+  const heroImg = (category && CATEGORY_IMAGES[category]) || HERO_IMAGES.main;
 
-      <div className="mt-10 grid gap-8 md:grid-cols-[240px_1fr]">
+  return (
+    <div>
+      <section className="relative h-[44vh] min-h-[300px] overflow-hidden bg-ink-900 text-cream-50">
+        <img
+          src={heroImg}
+          alt={category || 'Boutique'}
+          className="absolute inset-0 h-full w-full object-cover opacity-55"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/50 to-transparent" />
+        <div className="relative z-10 flex h-full items-end pb-12">
+          <div className="section">
+            <p className="kicker-light">Boutique</p>
+            <h1 className="mt-3 font-display text-5xl md:text-7xl">
+              {category || 'The Collection'}
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      <div className="section py-12">
+      <div className="grid gap-8 md:grid-cols-[240px_1fr]">
         <aside className="space-y-8">
           <div>
             <h3 className="text-xs uppercase tracking-widest text-gold-500">Category</h3>
@@ -134,9 +168,24 @@ export default function Shop() {
               ))}
             </div>
           ) : products.length === 0 ? (
-            <p className="py-20 text-center text-ink-700/70">
-              No pieces found. Try clearing filters.
-            </p>
+            <div>
+              <div className="mb-8 border border-gold-300/40 bg-cream-100 p-6 text-center">
+                <p className="kicker">Atelier Preview</p>
+                <p className="mt-2 text-sm text-ink-700">
+                  Our boutique is being curated. Below is a glimpse of the
+                  upcoming collection — admin can add live products from the
+                  panel.
+                </p>
+              </div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {(category
+                  ? SHOWCASE_PRODUCTS.filter((p) => p.category === category)
+                  : SHOWCASE_PRODUCTS
+                ).map((p) => (
+                  <ShowcaseTile key={p.id} p={p} />
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((p) => (
@@ -145,6 +194,7 @@ export default function Shop() {
             </div>
           )}
         </section>
+      </div>
       </div>
     </div>
   );
